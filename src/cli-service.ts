@@ -3,6 +3,7 @@ import * as path from "path";
 import { PathService } from "./path-service.js";
 import { RenameArgs } from "./interfaces/rename.interface.js";
 import { DeleteArgs } from "./interfaces/delete.interface.js";
+import { CopyArgs } from "./interfaces/copy.interface.js";
 
 export class CliService {
   private pathService: PathService;
@@ -16,12 +17,6 @@ export class CliService {
     newName,
     newPath,
   }: RenameArgs): Promise<void> {
-    if (!newName)
-      throw new Error("newName argument is required for rename task");
-
-    if (!filePath)
-      throw new Error("filePath argument is required for rename task");
-
     const cwd = process.cwd();
     const sourcePath = this.pathService.ensureAbsolutePath(filePath, cwd);
     const baseTargetDir = this.pathService.resolveTargetDirectory(newPath, cwd);
@@ -40,9 +35,6 @@ export class CliService {
   }
 
   public async delete({ filePath }: DeleteArgs): Promise<void> {
-    if (!filePath)
-      throw new Error("filePath argument is required for rename task");
-
     const cwd = process.cwd();
     const sourcePath = this.pathService.ensureAbsolutePath(filePath, cwd);
 
@@ -50,7 +42,17 @@ export class CliService {
     console.log("File removed");
   }
 
-  public async copy(): Promise<void> {
-    console.log("Copying...");
+  public async copy({ destinationPath, filePath }: CopyArgs): Promise<void> {
+    const cwd = process.cwd();
+    const sourcePath = this.pathService.ensureAbsolutePath(filePath, cwd);
+
+    const newPathDir = this.pathService.resolveTargetDirectory(
+      destinationPath,
+      cwd
+    );
+    const newPath = this.pathService.resolveTargetPath(newPathDir, cwd);
+
+    await fs.copyFile(sourcePath, newPath);
+    console.log("File coppied");
   }
 }
