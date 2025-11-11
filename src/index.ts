@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Cli } from "./cli.js";
 import { CliTaskBuilder } from "./cli-task-builder.js";
-import { CliController, Tasks } from "./cli-controller.js";
+import { CliController } from "./cli-controller.js";
 import { CliService } from "./cli-service.js";
 import { PathService } from "./path-service.js";
 
