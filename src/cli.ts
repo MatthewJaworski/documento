@@ -1,32 +1,20 @@
-import yargs from "yargs";
-import { hideBin } from "yargs/helpers";
-
-export enum TaskOptions {
-  rename = "rename",
-  delete = "delete",
-  copy = "copy",
-}
-
-export type Options = {
-  _: (string | number)[];
-  help?: boolean;
-  task?: TaskOptions;
-};
-export type TaskArgs = Omit<Options, "task">;
+import { TaskArgsMap, Tasks } from "./cli-controller.js";
+import { CliTaskBuilder } from "./cli-task-builder.js";
 
 export class Cli {
-  private _arguments: Options;
+  constructor(private builder: CliTaskBuilder) {}
 
-  constructor() {
-    this._arguments = yargs(hideBin(process.argv)).parse() as Options;
+  public async parse<K extends Tasks>() {
+    return (await this.builder.build()) as unknown as TaskArgsMap[K];
   }
 
-  public getTask(): TaskOptions | undefined {
-    return this._arguments?.task;
+  public getTask(argv: any): Tasks {
+    const task = argv._[0] as Tasks;
+    if (!task) throw new Error("No task specified");
+    return task;
   }
 
-  public getArgs(): TaskArgs {
-    const { task, ...args } = this._arguments;
-    return args;
+  public getArgs<T extends Tasks>(argv: any): TaskArgsMap[T] {
+    return argv as TaskArgsMap[T];
   }
 }

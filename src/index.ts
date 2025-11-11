@@ -1,19 +1,26 @@
 #!/usr/bin/env node
-
-import { CliController } from "./cli-controller.js";
-import { CliService } from "./cli-service.js";
 import { Cli } from "./cli.js";
+import { CliTaskBuilder } from "./cli-task-builder.js";
+import { CliController, Tasks } from "./cli-controller.js";
+import { CliService } from "./cli-service.js";
+import { PathService } from "./path-service.js";
 
 async function main() {
-  const cli = new Cli();
-  const service = new CliService();
-  const cliController = new CliController(service);
-  const task = cli.getTask();
-  const args = cli.getArgs();
-  cliController.executeTask(task, args);
+  const pathService = new PathService();
+  const cliService = new CliService(pathService);
+  const cliController = new CliController(cliService);
+  const cliTaskBuilder = CliTaskBuilder.create();
+
+  const cli = new Cli(cliTaskBuilder);
+  const argv = cli.parse();
+
+  const task = cli.getTask(argv);
+  const args = await cli.parse();
+
+  await cliController.executeTask(task, args);
 }
 
 main().catch((error) => {
-  console.error("Error:", error.message);
+  console.error("❌ Error:", error.message);
   process.exit(1);
 });

@@ -1,8 +1,19 @@
-import { Options, TaskArgs, TaskOptions } from "./cli.js";
 import { CliService } from "./cli-service.js";
+import { RenameArgs } from "./interfaces/rename.interface.js";
+import { DeleteArgs } from "./interfaces/delete.interface.js";
+import { CopyArgs } from "./interfaces/copy.interface.js";
 
-type TaskFunction = (args: Omit<Options, "task">) => void;
-type TaskOptionRepository = Record<TaskOptions, TaskFunction>;
+export type TaskArgsMap = {
+  rename: RenameArgs;
+  delete: DeleteArgs;
+  copy: CopyArgs;
+};
+
+export type Tasks = keyof TaskArgsMap;
+
+type TaskFunction<K extends Tasks> = (args: TaskArgsMap[K]) => Promise<void>;
+
+type TaskOptionRepository = { [K in Tasks]: TaskFunction<K> };
 
 export class CliController {
   private cliService: CliService;
@@ -11,19 +22,18 @@ export class CliController {
   constructor(cliService: CliService) {
     this.cliService = cliService;
     this.taskOptionRepository = {
-      [TaskOptions.rename]: this.cliService.rename.bind(this.cliService),
-      [TaskOptions.delete]: this.cliService.delete.bind(this.cliService),
-      [TaskOptions.copy]: this.cliService.copy.bind(this.cliService),
+      rename: this.cliService.rename.bind(this.cliService),
+      delete: this.cliService.delete.bind(this.cliService),
+      copy: this.cliService.copy.bind(this.cliService),
     };
   }
 
-  public executeTask(task: TaskOptions | undefined, args: TaskArgs): void {
-    if (!task) throw new Error("No task provided");
-
+  public async executeTask<K extends Tasks>(
+    task: K,
+    args: TaskArgsMap[K]
+  ): Promise<void> {
     const taskFunction = this.taskOptionRepository[task];
-
     if (!taskFunction) throw new Error(`Unknown task: ${task}`);
-
-    taskFunction(args);
+    await taskFunction(args);
   }
 }
