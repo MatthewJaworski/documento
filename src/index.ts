@@ -12,10 +12,9 @@ async function main() {
   const cliTaskBuilder = CliTaskBuilder.create();
 
   const cli = new Cli(cliTaskBuilder);
-  const argv = cli.parse();
 
-  const task = cli.getTask(argv);
   const args = await cli.parse();
+  const task = cli.getTask(args);
 
   await cliController.executeTask(task, args);
 }
